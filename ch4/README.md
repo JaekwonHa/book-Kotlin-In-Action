@@ -31,10 +31,14 @@
 
 다루는 내용
 * class, interface
-* 뻔하지 않은 생성자와 프로퍼티
-* data class
-* delegating class
-* object
+* open, final, abstract, override
+* public, internal, protected, private
+* nested class, inner class, sealed class
+* 주 생성자, 부 생성자, 초기화 블록
+* getter, setter
+* data class, by
+* object class, companion class
+* object expression
 
 ## 4.1 클래스 계층 정의
 
