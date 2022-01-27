@@ -25,6 +25,12 @@
     - [6.2.4 Any, Any?](#624-any-any)
     - [6.2.5 Unit](#625-unit)
     - [6.2.6 Nothing](#626-nothing)
+  - [6.3 컬렉션과 배열](#63-%EC%BB%AC%EB%A0%89%EC%85%98%EA%B3%BC-%EB%B0%B0%EC%97%B4)
+    - [6.3.1 널 가능성과 컬렉션](#631-%EB%84%90-%EA%B0%80%EB%8A%A5%EC%84%B1%EA%B3%BC-%EC%BB%AC%EB%A0%89%EC%85%98)
+    - [6.3.2 읽기 전용과 변경 가능한 컬렉션](#632-%EC%9D%BD%EA%B8%B0-%EC%A0%84%EC%9A%A9%EA%B3%BC-%EB%B3%80%EA%B2%BD-%EA%B0%80%EB%8A%A5%ED%95%9C-%EC%BB%AC%EB%A0%89%EC%85%98)
+    - [6.3.3 코틀린 컬렉션과 자바](#633-%EC%BD%94%ED%8B%80%EB%A6%B0-%EC%BB%AC%EB%A0%89%EC%85%98%EA%B3%BC-%EC%9E%90%EB%B0%94)
+    - [6.3.4 컬렉션을 플랫폼 타입으로 다루기](#634-%EC%BB%AC%EB%A0%89%EC%85%98%EC%9D%84-%ED%94%8C%EB%9E%AB%ED%8F%BC-%ED%83%80%EC%9E%85%EC%9C%BC%EB%A1%9C-%EB%8B%A4%EB%A3%A8%EA%B8%B0)
+    - [6.3.5 객체의 배열과 원시 타입의 배열](#635-%EA%B0%9D%EC%B2%B4%EC%9D%98-%EB%B0%B0%EC%97%B4%EA%B3%BC-%EC%9B%90%EC%8B%9C-%ED%83%80%EC%9E%85%EC%9D%98-%EB%B0%B0%EC%97%B4)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -32,7 +38,17 @@
 
 다루는 내용
 
-* nullable type, not-null assertion, elvis, nullable type 확장 함수
+* ?
+* ?.
+* ?:
+* as?
+* !!
+* let
+* lateinit
+* 플랫폼 타입
+* Any, Unit, Nothing
+* 읽기 전용 컬렉션, 변경 가능 컬렉션
+* 배열, 원시타입 배열
 
 ## 6.1 널 가능성
 
@@ -337,10 +353,69 @@ fun fail(message: String): Nothing {
 val address = company.address ?: fail("No address") // fail 은 정상종료 되지 않는 함수이므로, address 값은 널인 경우가 없음을 알 수 있다
 ```
 
+## 6.3 컬렉션과 배열
 
+### 6.3.1 널 가능성과 컬렉션
 
+유용한 코틀린 표준 라이브러리
+* String.toIntOrNull()
+* filterNotNull()
 
+### 6.3.2 읽기 전용과 변경 가능한 컬렉션
 
+코틀린 컬렉션과 자바 컬렉션의 중요한 차이점은 코틀린에서는 컬렉션 안의 데이터에 접근하는 인터페이스와 컬렉션 안의 데이터를 변경하는 인터페이스를 분리했다는 점입니다.
 
+kotlin.collections.Collection 인터페이스에는 데이터를 읽는 여러 다른 연산을 수행할 수 있지만, 원소를 추가하거나 제거하는 메서드가 없습니다.
 
+컬렉션의 데이터를 수정하려면 kotlin.collections.MutableCollection 인터페이스를 사용해야 합니다.
 
+MutableCollection 은 Collection 인터페이스를 확장하여 원소를 추가하거나 삭제하거나 원소를 모두 지우는 등의 메서드를 제공합니다.
+
+주의할 점은, 같은 컬렉션 객체를 가리키는 다른 타입의 참조들이 있을 수 있습니다. (읽기 전용과 변경 가능 컬렉션)
+
+이런 상황에서 이 컬렉션을 참조하는 다른 코드를 호출하거나, 병렬 실행하면 컬렉션을 사용하는 중에 내용이 변경되는 상황이 생길 수 있습니다. 이때 ConcurrentModificationException 이나 다른 오류가 발생할 수 있습니다. 따라서 읽기 전용 컬렉션이 항상 thread safe 하지 않다는 점을 명심해야 합니다.
+
+다중 스레드 환경에서 데이터를 다루는 경우에는 데이터를 적절히 동기화하거나, 동시 접근을 허용하는 데이터 구조를 사용해야 합니다.
+
+### 6.3.3 코틀린 컬렉션과 자바
+
+|컬렉션 타입|읽기 전용 타입|변경 가능 타입|
+|--------|-----------|----------|
+|List|listOf|mutableListOf, arrayListOf|
+|Set|setOf|mutableSetOf, hasSetOf, LinkedSetOf, sortedSetOf|
+|Map|mapOf|mutableMapOf, hasMapOf, linkedMapOf, sortedMapOf|
+
+모든 코틀린 컬렉션은 자바 컬렉션과 동일한데, 읽기 전용과 변경 가능 컬렉션은 어떻게 구현된 것일까요.
+
+java.util.Collection 을 파라미터로 받는 자바 메서드에는 Collection 이나 MutableCollection 모두 인자로 넘길 수 있습니다. 자바는 읽기 전용 컬렉션과 변경 가능 컬렉션을 구분하지 않습니다.
+
+이로 인해 코틀린에서는 읽기 전용일지라도 자바 코드 내에서는 컬렉션의 내용을 변경할 수 있습니다. 따라서 플랫폼 타입과 같이, 컬렉션을 어떤 타입으로 정의할지는 개발자에게 책임이 있습니다.
+
+자바쪽에서 컬렉션을 변경할 여지가 있다면 그냥 변경 가능 컬렉션으로 정의하는게 좋을 수도 있습니다.
+
+### 6.3.4 컬렉션을 플랫폼 타입으로 다루기
+
+자바쪽에서 선언한 컬렉션 타입의 변수를 코틀린에서는 플랫폼 타입으로 봅니다. 플랫폼 타입인 컬렉션은 변경 가능성을 알 수 없습니다. 
+
+보통은 어느 것으로 다루든 상관 없을 수 있으나, 컬렉션 타입이 시그니처에 들어간 자바 메서드 구현을 오버라이드 하려는 경우 어떤 코틀린 컬렉션 타입을 사용할지 잘 결정해야 합니다.
+
+* 컬렉션이 널이 될 수 있는가?
+* 컬렉션의 원소가 널이 될 수 있는가?
+* 오버라이드하는 메서드가 컬렉션을 변경할 수 있는가?
+
+### 6.3.5 객체의 배열과 원시 타입의 배열
+
+코틀린에서 배열을 만드는 방법
+
+* arrayOf()
+* arrayOfNulls()
+* Array<T>() { i -> ... }
+
+코틀린에서 원시 타입의 배열을 만드는 방법
+
+* IntArray()
+* intArrayOf()
+* IntArray() { i -> ... }
+* toIntArray()
+
+컬렉션에서 사용할 수 있는 모든 확장 함수를 배열에서도 사용할 수 있습니다.
