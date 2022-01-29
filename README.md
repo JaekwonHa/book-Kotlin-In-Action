@@ -8,3 +8,11 @@
 * [ch4 클래스, 객체, 인터페이스](ch4)
 * [ch5 람다로 프로그래밍](ch5)
 * [ch6 코틀린 타입 시스템](ch6)
+* [ch7 연산자 오버로딩과 기타 관례](ch7)
+
+## 유용한 코틀린 표준 라이브러리
+
+```kotlin
+forEachIndexed { }
+compareValuesBy()
+```
