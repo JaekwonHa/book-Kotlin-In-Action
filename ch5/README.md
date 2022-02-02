@@ -12,10 +12,18 @@
     - [5.1.5 멤버 참조](#515-%EB%A9%A4%EB%B2%84-%EC%B0%B8%EC%A1%B0)
   - [5.2 컬렉션 함수형 API](#52-%EC%BB%AC%EB%A0%89%EC%85%98-%ED%95%A8%EC%88%98%ED%98%95-api)
     - [5.2.1 필수적인 함수: filter, map](#521-%ED%95%84%EC%88%98%EC%A0%81%EC%9D%B8-%ED%95%A8%EC%88%98-filter-map)
-    - [5.2.2 all, any, count, fund: 컬렉션에 술어 적용](#522-all-any-count-fund-%EC%BB%AC%EB%A0%89%EC%85%98%EC%97%90-%EC%88%A0%EC%96%B4-%EC%A0%81%EC%9A%A9)
+    - [5.2.2 all, any, count, find: 컬렉션에 술어 적용](#522-all-any-count-find-%EC%BB%AC%EB%A0%89%EC%85%98%EC%97%90-%EC%88%A0%EC%96%B4-%EC%A0%81%EC%9A%A9)
     - [5.2.3 groupBy: 리스트를 어러 그룹으로 이뤄진 맵으로 변경](#523-groupby-%EB%A6%AC%EC%8A%A4%ED%8A%B8%EB%A5%BC-%EC%96%B4%EB%9F%AC-%EA%B7%B8%EB%A3%B9%EC%9C%BC%EB%A1%9C-%EC%9D%B4%EB%A4%84%EC%A7%84-%EB%A7%B5%EC%9C%BC%EB%A1%9C-%EB%B3%80%EA%B2%BD)
     - [5.2.4 flatMap, flatten: 중첩된 컬렉션 안의 원소 처리](#524-flatmap-flatten-%EC%A4%91%EC%B2%A9%EB%90%9C-%EC%BB%AC%EB%A0%89%EC%85%98-%EC%95%88%EC%9D%98-%EC%9B%90%EC%86%8C-%EC%B2%98%EB%A6%AC)
   - [5.3 지연 계산(lazy) 컬렉션 연산](#53-%EC%A7%80%EC%97%B0-%EA%B3%84%EC%82%B0lazy-%EC%BB%AC%EB%A0%89%EC%85%98-%EC%97%B0%EC%82%B0)
+    - [5.3.1 시퀀스 연산 실행: 중간 연산과 최종 연산](#531-%EC%8B%9C%ED%80%80%EC%8A%A4-%EC%97%B0%EC%82%B0-%EC%8B%A4%ED%96%89-%EC%A4%91%EA%B0%84-%EC%97%B0%EC%82%B0%EA%B3%BC-%EC%B5%9C%EC%A2%85-%EC%97%B0%EC%82%B0)
+    - [5.3.2 시퀀스 만들기](#532-%EC%8B%9C%ED%80%80%EC%8A%A4-%EB%A7%8C%EB%93%A4%EA%B8%B0)
+  - [5.4 자바 함수형 인터페이스 활용](#54-%EC%9E%90%EB%B0%94-%ED%95%A8%EC%88%98%ED%98%95-%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4-%ED%99%9C%EC%9A%A9)
+    - [5.4.1 자바 메서드에 람다를 인자로 전달](#541-%EC%9E%90%EB%B0%94-%EB%A9%94%EC%84%9C%EB%93%9C%EC%97%90-%EB%9E%8C%EB%8B%A4%EB%A5%BC-%EC%9D%B8%EC%9E%90%EB%A1%9C-%EC%A0%84%EB%8B%AC)
+    - [5.4.2 SAM 생성자: 람다를 함수형 인터페이스로 명시적으로 변경](#542-sam-%EC%83%9D%EC%84%B1%EC%9E%90-%EB%9E%8C%EB%8B%A4%EB%A5%BC-%ED%95%A8%EC%88%98%ED%98%95-%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4%EB%A1%9C-%EB%AA%85%EC%8B%9C%EC%A0%81%EC%9C%BC%EB%A1%9C-%EB%B3%80%EA%B2%BD)
+  - [5.5 수신 객체 지정 람다: with 와 apply](#55-%EC%88%98%EC%8B%A0-%EA%B0%9D%EC%B2%B4-%EC%A7%80%EC%A0%95-%EB%9E%8C%EB%8B%A4-with-%EC%99%80-apply)
+    - [5.5.1 with 함수](#551-with-%ED%95%A8%EC%88%98)
+    - [5.5.2 apply 함수](#552-apply-%ED%95%A8%EC%88%98)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -28,6 +36,7 @@
 * 자바 스트림, 코틀린 시퀀스
 * 스트림, 시퀀스의 지연 연산
 * 람다가 변수를 캡쳐할때
+  * 클로저란: https://developer.mozilla.org/ko/docs/Web/JavaScript/Closures#%ED%81%B4%EB%A1%9C%EC%A0%80closure
 * 수신 객체 지정 함수: with, apply
 
 ## 5.1 람다 식과 멤버 참조
@@ -43,10 +52,10 @@
 ```kotlin
 val people = listOf(Person("Alice", 29), Person("Bob", 31))
 // 람다 사용
-println(people.maxBy { it.age })
+println(people.maxByOrNull { it.age })
 
 // 멤버 참조 사용
-people.maxBy(Person::age)
+people.maxByOrNull(Person::age)
 ```
 
 자바 컬렉션에 대해 수행하던 대부분의 작업은 람다나 멤버 참조를 인자로 전달함으로써 코드를 더 짧고 이해하기 쉽게 만들 수 있습니다.
@@ -64,11 +73,11 @@ println(sum(1, 2))
 
 ```kotlin
 // 다양한 방식으로 람다 사용 가능
-people.maxBy { it.age }
-people.maxBy({ p: Person -> p.age })
-people.maxBy() { p: Person -> p.age }
-people.maxBy { p: Person -> p.age }
-people.maxBy { p -> p.age } // 컴파일러가 타입 추론
+people.maxByOrNull { it.age }
+people.maxByOrNull({ p: Person -> p.age })
+people.maxByOrNull() { p: Person -> p.age }
+people.maxByOrNull { p: Person -> p.age }
+people.maxByOrNull { p -> p.age } // 컴파일러가 타입 추론
 ```
 
 람다식이 중첩된다면 it 대신 파라미터를 명시하는 것이 좋습니다.
@@ -110,9 +119,9 @@ fun tryToCountButtonClicks(button: Button): Int {
 ::을 사용하는 식을 멤버 참조라고 합니다. 멤버 참조는 프로퍼티나 메서드에 사용할 수 있습니다.
 
 ```kotlin
-people.maxBy(Person::age)
-people.maxBy { p -> p.age }
-people.maxBy { it.age }
+people.maxByOrNull(Person::age)
+people.maxByOrNull { p -> p.age }
+people.maxByOrNull { it.age }
 ```
 
 최상위에 선언된 함수나 프로퍼티도 참조할 수 있습니다.
@@ -157,9 +166,11 @@ val predicate = Person::isAdult
 
 ## 5.2 컬렉션 함수형 API
 
+함수형 프로그래밍에서 람다나 다른 함수를 인자로 받거나, 함수를 반환하는 함수를 고차 함수 (HOF) 라고 부릅니다.
+
 ### 5.2.1 필수적인 함수: filter, map
 
-### 5.2.2 all, any, count, fund: 컬렉션에 술어 적용
+### 5.2.2 all, any, count, find: 컬렉션에 술어 적용
 
 ### 5.2.3 groupBy: 리스트를 어러 그룹으로 이뤄진 맵으로 변경
 
