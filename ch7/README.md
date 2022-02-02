@@ -16,6 +16,13 @@
     - [7.3.3 rangeTo, a..z](#733-rangeto-az)
     - [7.3.4 for loop, iterator](#734-for-loop-iterator)
   - [7.4 구조 분해 선언과 component 함수](#74-%EA%B5%AC%EC%A1%B0-%EB%B6%84%ED%95%B4-%EC%84%A0%EC%96%B8%EA%B3%BC-component-%ED%95%A8%EC%88%98)
+    - [7.4.1 구조 분해 선언과 루프](#741-%EA%B5%AC%EC%A1%B0-%EB%B6%84%ED%95%B4-%EC%84%A0%EC%96%B8%EA%B3%BC-%EB%A3%A8%ED%94%84)
+  - [7.5 프로퍼티 접근자 로직 재활용: 위임 프로퍼티](#75-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0-%EC%A0%91%EA%B7%BC%EC%9E%90-%EB%A1%9C%EC%A7%81-%EC%9E%AC%ED%99%9C%EC%9A%A9-%EC%9C%84%EC%9E%84-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0)
+    - [7.5.2 위임 프로퍼티 사용: by lazy() 를 사용한 프로퍼티 초기화 지연](#752-%EC%9C%84%EC%9E%84-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0-%EC%82%AC%EC%9A%A9-by-lazy-%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%9C-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0-%EC%B4%88%EA%B8%B0%ED%99%94-%EC%A7%80%EC%97%B0)
+    - [7.5.3 위임 프로퍼티 구현](#753-%EC%9C%84%EC%9E%84-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0-%EA%B5%AC%ED%98%84)
+    - [7.5.4 위임 프로퍼티 컴파일 규칙](#754-%EC%9C%84%EC%9E%84-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0-%EC%BB%B4%ED%8C%8C%EC%9D%BC-%EA%B7%9C%EC%B9%99)
+    - [7.5.5 프로퍼티 값을 맵에 저장](#755-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0-%EA%B0%92%EC%9D%84-%EB%A7%B5%EC%97%90-%EC%A0%80%EC%9E%A5)
+    - [7.5.6 프레임워크에서 위임 프로퍼티 사용](#756-%ED%94%84%EB%A0%88%EC%9E%84%EC%9B%8C%ED%81%AC%EC%97%90%EC%84%9C-%EC%9C%84%EC%9E%84-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0-%EC%82%AC%EC%9A%A9)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -26,6 +33,9 @@
 * 산술, 비교 연산자 오버로딩
 * 비트 연산자
 * 컬렉션, 범위 관례 convention
+* 구조 분해 선언. component1, component2, componentN
+* 위임 프로퍼티, by, by lazy, getValue, setValue
+* 프로퍼티 변경 통지. Delegates.observable
 
 언어 기능을 타입에 의존하는 자바와 달리 코틀린에서는 관례 convention 에 의존합니다. 이는 기존 자바 클래스들 역시 코틀린에서 사용하기 위함입니다.
 
@@ -187,5 +197,185 @@ Map.Entry 에 .component1(), .component2() 로 key, value 를 받을 수 있는 
 
 ## 7.5 프로퍼티 접근자 로직 재활용: 위임 프로퍼티
 
+위임 프로퍼티를 사용하면 값을 뒷받침하는 필드에 단순히 저장하는 것보다 더 복잡한 방식으로 작동하는 프로퍼티를 구현할 수 있습니다.
 
+프로퍼티는 위임을 사용해 자신의 값을 필드가 아니라 데이터베이스 테이블이나 브라우저 세션, 맵 등에 저장할 수 있습니다.
 
+위임은 객체가 직접 작업을 수행하지 않고, 다른 도우미 객체, 위임 객체에게 처리를 맡기는 디자인 패턴입니다.
+
+```kotlin
+class Foo P {
+    var p: Type by Delegate()
+}
+
+// Foo 클래스는 아래와 같이 작동합니다. p 프로퍼티에 접근시 getValue, setValue 메서드를 호출합니다.
+class Foo {
+    private val delegate = Delegate()
+    var p: Type
+    set(value: Type) = deletegate.setValue(..., value)
+    get() = delegate.getValue(...)
+}
+```
+
+프로퍼티 위임 관례를 따르는 Delegate 클래스는 getValue, setValue 메서드를 제공해야 합니다. (변경 가능한 프로퍼티만 setValue 를 제공)
+
+다른 경우와 마찬가지로 getValue, setValue 는 멤버 메서드일수도 있고, 확장 함수일수도 있습니다.
+
+```kotlin
+
+class Delegate {
+    operator fun getValue(...) { ... }
+    operator fun setValue(..., value: Type) { ... }
+}
+class Foo {
+    var p: Type by Delegate()
+}
+
+>>> val foo = Foo()
+>>> val oldValue = foo.p // 내부적으로 delegate.getValue() 호출
+>>> foo.p = newValue // 내부적으로 deletegate.setValue(..., newValue) 호출
+```
+
+### 7.5.2 위임 프로퍼티 사용: by lazy() 를 사용한 프로퍼티 초기화 지연
+
+지연 초기화는 객체의 일부분을 초기화하지 않고, 실제로 그 부분의 값이 필요할 경우 초기화할때 쓰이는 패턴입니다.
+
+초기화 과정에서 자원을 많이 사용하거나, 꼭 초기화되지 않아도 되는 부분에 사용할 수 있습니다.
+
+[4_by_lazy.kts](4_by_lazy.kts)
+
+초기 구현에서는 뒷받침하는 프로퍼티, 백킹 프로퍼티 backing property 라는 기법을 사용했습니다. _emails 라는 프로퍼티는 값을 저장하고, 다른 프로퍼티인 emails 는 _emails 프로퍼티에 대한 읽기 연산을 제공합니다.
+
+lazy 를 by 키워드와 함께 위임 프로퍼티를 쉽게 만들 수 있습니다. lazy 함수의 인자는 값을 초기화할때 호출할 람다입니다.
+
+lazy 함수는 기본적으로 thread safe 하지만, 필요에 따라 동기화에 사용할 Lock 을 lazy 함수에 전달 할 수도 있고, 다중 스레드 환경에서 사용하지 않을 프로퍼티를 위해 lazy 함수가 동기화를 하지 못하게 막을 수도 있습니다.
+
+### 7.5.3 위임 프로퍼티 구현
+
+어떤 객체의 프로퍼티가 바뀔 때마다 리스너에게 변경 통지를 보내고 싶은 케이스를 살펴봅시다.
+
+자바에서는 PropertyChangeSupport, PropertyChangeEvent 클래스를 사용해 이런 통지를 처리하는 경우가 자주 있습니다.
+
+코틀린에서 위임 프로퍼티 없이 이런 기능을 구현하고, 위임 프로퍼티를 사용하는 리팩토링을 해보겠습니다.
+
+[5_property_change_support.kts](5_property_change_support.kts)
+
+이 코드는 field 키워드를 사용해 age, salary 프로퍼티의 백킹 프로퍼티에 접근하는 방법을 보여줍니다. setter 코드를 보면 중복이 많이 보입니다.
+
+[6_observable_property.kts](6_observable_property.kts)
+
+이 코드는 코틀린의 위임이 실제로 작동하는 방식과 비슷합니다. 프로퍼티 값을 저장하고 그 값이 바뀌면 자동으로 변경 통지를 전달해주는 클래스를 만들었고, setter 중복부분을 상당 부분 제거했습니다.
+
+하지만 아직도 작업 위임을 준비하는 코드가 상당히 많이 필요합니다.
+
+[7_observable_property_by.kts](7_observable_property_by.kts)
+
+```kotlin
+class Person(val name: String, age: Int, salary: Int) : PropertyChangeAware() {
+    var age: Int by ObservableProperty(age, changeSupport)
+    var salary: Int by ObservableProperty(salary, changeSupport)
+}
+
+```
+
+getValue, setValue 함수를 operator 변경자를 붙여서 작성해주고, KProperty 타입 객체를 사용해 프로퍼티를 표현합니다.
+
+그리고 by 키워드를 사용해 위임 객체를 지정해주면 이전 예제에서 직접 코드를 짜야 했던 어려 작업을 코틀린 컴파일러가 자동으로 처리해줍니다.
+
+관찰 가능한 프로퍼티 로직 `ObservableProperty` 클래스를 직접 작성하는 대신 코틀린 표준 라이브러리를 사용할 수 있습니다.
+
+다만 이 표준 라이브러리는 PropertyChangeSupport 와는 연결돼 있지 않아서 PropertyChangeSupport 를 사용하는 방법을 알려주는 람다를 넘겨주어야 합니다.
+
+[8_delegates_observable_by.kts](8_delegates_observable_by.kts)
+
+```kotlin
+
+class Person(val name: String, age: Int, salary: Int) : PropertyChangeAware() {
+    private val observer = { prop: KProperty<*>, oldValue: Int, newValue: Int ->
+        changeSupport.firePropertyChange(prop.name, oldValue, newValue)
+    }
+    var age: Int by Delegates.observable(age, observer)
+    var salary: Int by Delegates.observable(salary, observer)
+}
+```
+
+by 오른쪽 식이 항상 새 인스턴스를 만들 필요는 없고, 함수 호출, 다른 프로퍼티, 다른 식 등이 by 우항에 올 수 있습니다.
+
+다만 우항에 있는 식을 계산한 결과 객체가 컴파일러가 호출할 수 있는 올바른 타입의 getValue, setValue 를 반드시 제공해야 합니다.
+
+getValue, setValue 는 멤버 메서드일수도, 확장 함수 일수도 있습니다.
+
+예제에서는 Int 타입만을 사용했지만, 모든 타입에 두루두루 사용할 수 있습니다.
+
+### 7.5.4 위임 프로퍼티 컴파일 규칙
+
+위임 프로퍼티가 실제로 어떤 방식으로 동작하는지 알아보겠습니다.
+
+```kotlin
+class C {
+    var prop: Type by MyDelegate()
+}
+val c = C()
+```
+
+컴파일러는 MyDelete 클래스의 인스턴스를 감춰진 프로퍼티에 저장하며, 그 감춰진 프로퍼티를 <delegate> 라는 이름으로 부릅니다. 또한 컴파일러는 프로퍼티를 표현하기 위해 KProperty 타입의 객체를 사용합니다. 이 객체를 <property> 라고 부릅니다.
+
+컴파일러는 다음 코드를 생성합니다.
+
+```kotlin
+class C {
+    private val <delegate> = MyDelegate()
+    var prop: Type
+    get() = <delegate>.getValue(this, <property>)
+    set(value: Type) = <delegate>.setValue(this, <property>, value)
+}
+```
+
+다시 말해 컴파일러는 모든 프로퍼티 접근자 안에 getValue, setValue 호출 코드를 생성해줍니다.
+
+이 메커니즘은 단순하지만, 값이 저장될 장소를 바꾼다거나, 프로퍼티를 읽거나 쓸때 벌어질 일을 변경할 수도 있는 등 흥미로운 활용법이 많습니다.
+
+### 7.5.5 프로퍼티 값을 맵에 저장
+
+[9_attribute_map.kts](9_attribute_map.kts)
+
+by 키워드 뒤에 맵을 넘겨주면 맵을 위임 객체로 사용할 수 있습니다. 이는 Map, MutableMap 인터페이스에서 getValue, setValue 확장 함수를 제공해주기에 가능합니다.
+
+### 7.5.6 프레임워크에서 위임 프로퍼티 사용
+
+```kotlin
+object Users: IdTable() {
+    val name = varchar("name", length = 50).index()
+    val age = integer("age")
+}
+
+class User(id: EntityId): Entity(id) {
+    var name: String by Users.name
+    var age: Int by Users.age
+}
+```
+
+데이터베이스는 전체에 단 하나만 존재하므로 object 객체로 선언하였습니다. 객체의 프로퍼티는 테이블 칼럼을 표현합니다.
+
+User 상위 클래스인 Entity 클래스는 데이터베이스 칼럼을 엔티티의 속성값으로 연결해주는 매핑이 있습니다.
+
+이 프레임워크를 사용하면 User 프로퍼티에 접근할때 자동으로 Entity 클래스에 정의된 데이터베이스 매핑으로부터 필요한 값을 가져오므로 편리합니다.
+
+어떤 User 객체를 변경하면 그 객체는 변경됨 dirty 상태로 변하고, 프레임워크는 나중에 적절히 데이터베이스에 변경 내용을 반영합니다.
+
+각 엔티티 속성은 위임 프로퍼티이며, 칼럼 객체 (Users.name, Users.age)를 위임 객체로 사용합니다. 이를 위해 getValue, setValue 메서드를 Column 클래스 안에 정의해야 합니다.
+
+```kotlin
+operator fun <T> Column<T>.getValue(o: Entity, desc: KProperty<*>): T {
+    // 데이터베이스에서 값 가져오기
+}
+operator fun <T> Column<T>.setValue(o: Entity, desc: KProperty<*>, value: T) {
+    // 데이터베이스에서 값 변경하기
+}
+```
+
+user.age += 1 이라는 코드를 사용하면 실제로는 user.ageDelegate.setValue(users.ageDelegate.getValue() + 1) 과 비슷한 코드로 변환됩니다.
+
+이 예제의 완전한 구현을 Exposed 프레임워크 소스코드에서 볼 수 있습니다. 11장에서 Exposed 프레임워크에 사용한 DSL 설계 기법을 봅니다.
+
+> https://github.com/JetBrains/Exposed
