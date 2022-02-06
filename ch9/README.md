@@ -1,3 +1,30 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [9장 제네릭스](#9%EC%9E%A5-%EC%A0%9C%EB%84%A4%EB%A6%AD%EC%8A%A4)
+  - [9.1 제네릭 타입 파라미터](#91-%EC%A0%9C%EB%84%A4%EB%A6%AD-%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0)
+    - [9.1.1 제네릭 함수와 프로퍼티](#911-%EC%A0%9C%EB%84%A4%EB%A6%AD-%ED%95%A8%EC%88%98%EC%99%80-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0)
+    - [9.1.2 제네릭 클래스 선언](#912-%EC%A0%9C%EB%84%A4%EB%A6%AD-%ED%81%B4%EB%9E%98%EC%8A%A4-%EC%84%A0%EC%96%B8)
+    - [9.1.3 타입 파라미터 제약](#913-%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0-%EC%A0%9C%EC%95%BD)
+    - [9.1.4 타입 파라미터를 널이 될 수 없는 타입으로 한정](#914-%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0%EB%A5%BC-%EB%84%90%EC%9D%B4-%EB%90%A0-%EC%88%98-%EC%97%86%EB%8A%94-%ED%83%80%EC%9E%85%EC%9C%BC%EB%A1%9C-%ED%95%9C%EC%A0%95)
+  - [9.2 실행 시 제네릭스의 동작: 소거된 타입 파라미터와 실체화된 타입 파라미터](#92-%EC%8B%A4%ED%96%89-%EC%8B%9C-%EC%A0%9C%EB%84%A4%EB%A6%AD%EC%8A%A4%EC%9D%98-%EB%8F%99%EC%9E%91-%EC%86%8C%EA%B1%B0%EB%90%9C-%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0%EC%99%80-%EC%8B%A4%EC%B2%B4%ED%99%94%EB%90%9C-%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0)
+    - [9.2.1 실행 시점의 제네릭: 타입 검사와 캐스트](#921-%EC%8B%A4%ED%96%89-%EC%8B%9C%EC%A0%90%EC%9D%98-%EC%A0%9C%EB%84%A4%EB%A6%AD-%ED%83%80%EC%9E%85-%EA%B2%80%EC%82%AC%EC%99%80-%EC%BA%90%EC%8A%A4%ED%8A%B8)
+    - [9.2.2 실체화한 타입 파라미터를 사용한 함수 선언](#922-%EC%8B%A4%EC%B2%B4%ED%99%94%ED%95%9C-%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%9C-%ED%95%A8%EC%88%98-%EC%84%A0%EC%96%B8)
+    - [9.2.3 실체화된 타입 파라미터로 클래스 참조 대신](#923-%EC%8B%A4%EC%B2%B4%ED%99%94%EB%90%9C-%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0%EB%A1%9C-%ED%81%B4%EB%9E%98%EC%8A%A4-%EC%B0%B8%EC%A1%B0-%EB%8C%80%EC%8B%A0)
+    - [9.2.4 실체화된 타입 파라미터의 제약](#924-%EC%8B%A4%EC%B2%B4%ED%99%94%EB%90%9C-%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0%EC%9D%98-%EC%A0%9C%EC%95%BD)
+      - [타입 파라미터 사용 가능한 경우](#%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0-%EC%82%AC%EC%9A%A9-%EA%B0%80%EB%8A%A5%ED%95%9C-%EA%B2%BD%EC%9A%B0)
+      - [타입 파라미터 사용할 수 없는 경우](#%ED%83%80%EC%9E%85-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0-%EC%82%AC%EC%9A%A9%ED%95%A0-%EC%88%98-%EC%97%86%EB%8A%94-%EA%B2%BD%EC%9A%B0)
+  - [9.3 변성: 제네릭과 하위 타입](#93-%EB%B3%80%EC%84%B1-%EC%A0%9C%EB%84%A4%EB%A6%AD%EA%B3%BC-%ED%95%98%EC%9C%84-%ED%83%80%EC%9E%85)
+    - [9.3.1 변성이 있는 이유: 인자를 함수에 넘기기](#931-%EB%B3%80%EC%84%B1%EC%9D%B4-%EC%9E%88%EB%8A%94-%EC%9D%B4%EC%9C%A0-%EC%9D%B8%EC%9E%90%EB%A5%BC-%ED%95%A8%EC%88%98%EC%97%90-%EB%84%98%EA%B8%B0%EA%B8%B0)
+    - [9.3.2 클래스, 타입, 하위 타입](#932-%ED%81%B4%EB%9E%98%EC%8A%A4-%ED%83%80%EC%9E%85-%ED%95%98%EC%9C%84-%ED%83%80%EC%9E%85)
+    - [9.3.3 out 공변성: 하위 타입 관계를 유지](#933-out-%EA%B3%B5%EB%B3%80%EC%84%B1-%ED%95%98%EC%9C%84-%ED%83%80%EC%9E%85-%EA%B4%80%EA%B3%84%EB%A5%BC-%EC%9C%A0%EC%A7%80)
+    - [9.3.4 in 반공변성: 뒤집힌 하위 타입 관계](#934-in-%EB%B0%98%EA%B3%B5%EB%B3%80%EC%84%B1-%EB%92%A4%EC%A7%91%ED%9E%8C-%ED%95%98%EC%9C%84-%ED%83%80%EC%9E%85-%EA%B4%80%EA%B3%84)
+    - [9.3.5 사용 지점 변성: 타입이 언급되는 지점에서 변성 지정](#935-%EC%82%AC%EC%9A%A9-%EC%A7%80%EC%A0%90-%EB%B3%80%EC%84%B1-%ED%83%80%EC%9E%85%EC%9D%B4-%EC%96%B8%EA%B8%89%EB%90%98%EB%8A%94-%EC%A7%80%EC%A0%90%EC%97%90%EC%84%9C-%EB%B3%80%EC%84%B1-%EC%A7%80%EC%A0%95)
+    - [9.3.6 스타 프로젝션: 타입 인자 대신 * 사용](#936-%EC%8A%A4%ED%83%80-%ED%94%84%EB%A1%9C%EC%A0%9D%EC%85%98-%ED%83%80%EC%9E%85-%EC%9D%B8%EC%9E%90-%EB%8C%80%EC%8B%A0--%EC%82%AC%EC%9A%A9)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # 9장 제네릭스
 
 다루는 것
@@ -5,8 +32,11 @@
 * 제네릭 함수, 프로퍼티, 클래스
 * 타입 파라미터 T
 * upper bound : , where
-* 타입 소거, 스타 프로젝션 *
+* 타입 소거
 * 실체화된 타입 파라미터 reified
+* 선언 지점 변성, 사용 지점 변성
+* 공변성, 반공변성, 무공변성, out, in
+* 스타 프로젝션 *
 
 ## 9.1 제네릭 타입 파라미터
 
