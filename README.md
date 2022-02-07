@@ -17,6 +17,9 @@
 ## 유용한 코틀린 표준 라이브러리
 
 ```kotlin
+buildString { }
+with { }
+apply { }
 forEachIndexed { }
 compareValuesBy()
 use {}
